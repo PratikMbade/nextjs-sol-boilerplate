@@ -1,27 +1,182 @@
 "use client";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import React, { useState } from "react";
-type Props = {};
+import React, { useEffect, useState, useTransition } from "react";
+import { signIn, signOut, useSession } from "next-auth/react";
 
-const WalletConnect = (props: Props) => {
-  const wallet = useWallet();
-  const [balance, setBalance] = useState<number>();
-  const { connection } = useConnection();
 
-  const getBalanceOfUser = async () => {
-    const data = await connection.getBalance(wallet.publicKey!);
+import { redirect, useRouter } from "next/navigation";
 
-    setBalance(data);
+import { getSessionStatus, signin, signout } from "@/actions/solanaauth";
+import { auth } from "@/auth";
+import { WalletModalButton, WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { useWallet } from "@solana/wallet-adapter-react";
+
+
+
+
+
+interface SuccessResponse {
+  success: boolean;
+}
+
+interface ErrorResponse {
+  error: any;
+}
+interface ValueTypes {
+  publicAddress: string;
+  signedNonce: string;
+}
+
+type SigninResponse = SuccessResponse | ErrorResponse;
+
+function isSuccessResponse(
+  response: SigninResponse
+): response is SuccessResponse {
+  return "success" in response && response.success;
+}
+
+function uint8ArrayToBase64(uint8Array: Uint8Array): string {
+  const binaryString = String.fromCharCode.apply(null, uint8Array as any);
+  return btoa(binaryString);
+}
+
+const WalletConnect = () => {
+
+  const activeAccount = useWallet()
+
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+ 
+  const [isSessionLoading, setIsSessionLoading] = useState(true);
+  const [user, setUser] = useState<boolean>(false);
+
+  async function onSignInWithCrypto() {
+    try {
+      const publicAddress = activeAccount?.publicKey?.toBase58();
+      console.log("Public address:", publicAddress);
+
+      if (!publicAddress) {
+        throw new Error(
+          "Active account is not available or does not have an address."
+        );
+      }
+
+
+    
+
+       await new Promise((resolve) => setTimeout(resolve, 100));
+
+      
+        const response = await fetch("/api/auth/cryptononce", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ publicAddress }),
+        });
+
+        const responseData = await response.json();
+        console.log("res data is ", responseData);
+
+        const signedNonceArray = await activeAccount.signMessage!(
+          new TextEncoder().encode(responseData.nonce)
+        );
+    
+        // Convert Uint8Array to Base64 string
+        const signedNonce = uint8ArrayToBase64(signedNonceArray);
+        console.log("Signed nonce:", signedNonce);
+    
+        // Prepare the values for signing in
+        const values: ValueTypes = {
+          publicAddress,
+          signedNonce, // Now a Base64 string
+        };
+
+        const res: SigninResponse = await signin(values);
+
+
+
+    } catch (error) {
+      console.log("Error:", error);
+    }
+  }
+
+  const signedTransactionCall = async () => {
+    console.log("called")
+    if (activeAccount?.publicKey) {
+      console.log("user is ",user)
+      if (!user) {
+        await onSignInWithCrypto();
+      }
+    }
   };
+
+  const handleDisconnect = async () => {
+    if (activeAccount.publicKey) {
+      await activeAccount.disconnect(); // Disconnect the wallet
+      const isSignout = await signout(); // Handle signout from your auth system
+      console.log("isSignout", isSignout);
+      setUser(false); // Update user state
+      console.log("Wallet disconnected");
+    }
+  };
+
+
+
+  useEffect(() => {
+
+    const checkSessionStatus = async () => {
+      try {
+        const status = await getSessionStatus();
+        console.log("status is ",status)
+        setUser(status);
+      } catch (error) {
+        console.error('Failed to get session status:', error);
+        setUser(false);
+      } finally {
+        setIsSessionLoading(false);
+      }
+    };
+
+
+    checkSessionStatus();
+  }, []); 
+
+  useEffect(() => {
+
+    const sessionTimeout = setTimeout(() => {
+      setIsSessionLoading(false); 
+    }, 1000); 
+
+    return () => clearTimeout(sessionTimeout); 
+  }, []);
+
+  useEffect(() => {
+    if (activeAccount?.publicKey && !isSessionLoading) {
+
+
+      const timer = setTimeout(() => {
+        if (!user ) {
+      
+          onSignInWithCrypto();
+        }
+      }, 1000); 
+
+      return () => clearTimeout(timer);
+    }
+  }, [activeAccount?.publicKey, isSessionLoading]);
 
   return (
     <div>
-      <WalletMultiButton />
-      {/* <p>{wallet.publicKey?.toBase58()}</p>
-      <button onClick={getBalanceOfUser}>Fetch Balance</button>
+     
+        
+        <WalletMultiButton  onClick={signedTransactionCall}/>
 
-      {balance && <p>Balance: {balance}</p>} */}
+
+      {user && (
+        <button onClick={handleDisconnect}>Disconnect Wallet</button>
+      )}
+      
     </div>
   );
 };
