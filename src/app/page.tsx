@@ -12,7 +12,7 @@ export default function Home() {
       <nav className="flex items-center  justify-center w-full border-b border-b-neutral-800">
        <Navbar/>
       </nav>
-      <main className="p-4 pb-10 min-h-[100vh] flex flex-col lg:flex-row items-center justify-center container max-w-screen-lg mx-auto gap-x-3">
+      <main className="p-4 pb-12 min-h-[100vh] flex flex-col lg:flex-row items-center justify-center container max-w-screen-lg mx-auto gap-x-3">
       <Image
           className="bg-white p-3"
           src="https://nextjs.org/icons/next.svg"
