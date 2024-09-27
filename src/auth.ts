@@ -3,6 +3,10 @@ import { PrismaAdapter } from '@auth/prisma-adapter';
 import authConfig from "./auth.config";
 import { db } from "./db";
 
+interface User {
+    wallet_address?: string; // wallet_address might be undefined, so it's optional
+  }
+  
 
 export const {
     handlers: { GET, POST },
@@ -31,8 +35,8 @@ export const {
             console.log("JWT callback triggered");
             console.log("Token before modification:", token);
 
-            if (user && typeof (user as any).wallet_address === "string") {
-                token.wallet_address = (user as any).wallet_address;
+            if (user && typeof (user as User).wallet_address === "string") {
+                token.wallet_address = (user as User).wallet_address;
                 console.log("Token after modification:", token);
             }
 

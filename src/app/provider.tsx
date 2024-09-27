@@ -5,18 +5,31 @@ import {
   WalletProvider,
 } from "@solana/wallet-adapter-react";
 import {
-  WalletDisconnectButton,
+
   WalletModalProvider,
-  WalletMultiButton,
+
 } from "@solana/wallet-adapter-react-ui";
 import React from "react";
-require("@solana/wallet-adapter-react-ui/styles.css");
+import "@solana/wallet-adapter-react-ui/styles.css";
+
+import { ThemeProvider } from "@/provider/theme-provider"
+
 
 const Provider = ({ children }: { children: React.ReactNode }) => {
   return (
     <ConnectionProvider endpoint="https://api.devnet.solana.com">
       <WalletProvider wallets={[]} autoConnect>
-        <WalletModalProvider>{children}</WalletModalProvider>
+        <WalletModalProvider>
+
+        <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+          </ThemeProvider>
+        </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
   );

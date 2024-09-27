@@ -1,7 +1,7 @@
 import Credentials from "next-auth/providers/credentials";
 import type { NextAuthConfig } from "next-auth";
 
-import { NextRequest } from "next/server";
+
 
 
 
@@ -43,8 +43,8 @@ async function verifyMessage(nonce: string, signedNonce: string, publicKey: stri
 
 
 async function authorizeWeb3Wallet(
-    credentials: Partial<Record<"publicAddress" | "signedNonce", any>>, 
-    req:NextRequest
+    credentials: Partial<Record<"publicAddress" | "signedNonce", string | string>>, 
+
 ) {
     console.log("credentials", credentials);
   
@@ -64,7 +64,7 @@ async function authorizeWeb3Wallet(
   
     if (!user?.cryptoLoginNonce) return null;
   
-    const isVerified = verifyMessage(user.cryptoLoginNonce.nonce, signedNonce,publicAddress);
+    const isVerified = verifyMessage(user.cryptoLoginNonce.nonce, signedNonce!,publicAddress!);
   
 
   
@@ -72,12 +72,7 @@ async function authorizeWeb3Wallet(
   
     if (user.cryptoLoginNonce.expires < new Date()) return null;
   
-    const isRegister = await db.user.findFirst({
-      where: {
-        wallet_address: publicAddress,
-      },
-    });
-  
+
     return {
       id: user.id,
       wallet_address: user.wallet_address,
@@ -94,7 +89,7 @@ export default {
           publicAddress: { label: "Public Address", type: "text" },
           signedNonce: { label: "Signed Nonce", type: "text" },
         },
-        //@ts-ignore
+        // @ts-expect-error: authorizeWeb3Wallet doesn't match the expected type but is required for custom wallet auth
         authorize:authorizeWeb3Wallet
     }),
   ],

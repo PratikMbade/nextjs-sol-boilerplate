@@ -18,9 +18,8 @@ export const SigninSchema = z.object({
 interface Cookie {
     name: string;
     value: string;
-    options: {
-      [key: string]: any; // Replace with more specific types if known
-    };
+    options: Record<string, unknown>; // Replaces any with a safer type
+
 }
 
 export interface SignInResponse{

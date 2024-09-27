@@ -2,10 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { db } from '@/db';
 
-interface CryptoNonceResponse {
-  nonce: string;
-  expires: string;
-}
 
 export async function POST(req: NextRequest) {
   console.log("i am called")

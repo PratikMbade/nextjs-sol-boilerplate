@@ -1,41 +1,25 @@
 "use client";
-import React, { useEffect, useState, useTransition } from "react";
-import { signIn, signOut, useSession } from "next-auth/react";
-
-
-import { redirect, useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
 
 import { getSessionStatus, signin, signout } from "@/actions/solanaauth";
-import { auth } from "@/auth";
-import { WalletModalButton, WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import {  WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
 
 
 
 
-
-interface SuccessResponse {
-  success: boolean;
-}
-
-interface ErrorResponse {
-  error: any;
-}
 interface ValueTypes {
   publicAddress: string;
   signedNonce: string;
 }
 
-type SigninResponse = SuccessResponse | ErrorResponse;
 
-function isSuccessResponse(
-  response: SigninResponse
-): response is SuccessResponse {
-  return "success" in response && response.success;
-}
+
 
 function uint8ArrayToBase64(uint8Array: Uint8Array): string {
-  const binaryString = String.fromCharCode.apply(null, uint8Array as any);
+  const decoder = new TextDecoder();
+  const binaryString = decoder.decode(uint8Array);
+  
   return btoa(binaryString);
 }
 
@@ -43,8 +27,8 @@ const WalletConnect = () => {
 
   const activeAccount = useWallet()
 
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+
+
 
  
   const [isSessionLoading, setIsSessionLoading] = useState(true);
@@ -92,7 +76,7 @@ const WalletConnect = () => {
           signedNonce, // Now a Base64 string
         };
 
-        const res: SigninResponse = await signin(values);
+        await signin(values);
 
 
 
@@ -170,7 +154,7 @@ const WalletConnect = () => {
     <div>
      
         
-        <WalletMultiButton  onClick={signedTransactionCall}/>
+        <WalletMultiButton  style={{zIndex:100}} onClick={signedTransactionCall}/>
 
 
       {user && (

@@ -49,8 +49,11 @@ export const signin = async (
     if (res) {
       return { success: true, error: "false" };
     }
-  } catch (error) {
-    return { success: false, error: "something went wrong" };
+  } catch (error: unknown) { 
+    if (error instanceof Error) {
+      return { success: false, error: error.message };
+    }
+    return { success: false, error: "An unexpected error occurred" }; 
   }
 
   return { success: true, error: "something went wrong" };

@@ -10,11 +10,11 @@ import {
   DEFAULT_LOGIN_REDIRECT,
   publicRoutes,
 } from "./routes";
-import { Session } from "inspector/promises";
+
 
 const { auth } = NextAuth(authConfig);
 interface AuthenticatedNextRequest extends NextRequest {
-  auth?: any;
+  auth?: unknown; // Replace any with unknown if the structure is uncertain
 }
 
 export default auth(async (req: AuthenticatedNextRequest): Promise<Response | void> => {
@@ -28,7 +28,7 @@ export default auth(async (req: AuthenticatedNextRequest): Promise<Response | vo
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
   const isPublicRoutes = publicRoutes.includes(nextUrl.pathname);
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
-  const isCryptoRoute = nextUrl.pathname === "/api/auth/cryptononce"; // Add a specific check for the crypto route
+
 
   if (isApiAuthRoute) {
     console.log("hello isApiAuthRoute");
